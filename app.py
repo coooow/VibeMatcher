@@ -9,6 +9,11 @@ def load_data():
     
     df = df.drop_duplicates(subset=['track_name', 'artists'])
     
+    if 'popularity' in df.columns:
+        df = df[df['popularity'] > 50]
+    
+    df = df.reset_index(drop=True)
+    
     return df
 
 try:
@@ -65,7 +70,7 @@ if st.button("Find Matches") and selected_song:
             # We'll show the Genre instead of the image.
             st.metric(label="Match Score", value=f"{int(score*100)}%")
             st.write(f"**{match['track_name']}**")
-            st.caption(f"{match['artists']}")
+            st.caption(f"{match['artists']}".replace(";", ", "))
             st.info(match['track_genre'] if 'track_genre' in match else "Genre Unknown")
             
         count += 1
