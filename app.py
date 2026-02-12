@@ -23,39 +23,87 @@ except FileNotFoundError:
     st.stop()
 
 
-feature_cols = ['danceability', 'energy', 'valence', 'tempo', 'acousticness']
+feature_cols = ['danceability', 'energy', 'valence', 'tempo', 'acousticness', 'speechiness']
+
+missing_cols = [col for col in feature_cols if col not in df.columns]
+if missing_cols:
+    st.error(f"Your dataset is missing these columns: {missing_cols}")
+    st.stop()
 
 scaler = MinMaxScaler()
 df_scaled = df.copy()
 df_scaled[feature_cols] = scaler.fit_transform(df[feature_cols])
 
+df_scaled['tempo'] = df_scaled['tempo'] * 1.2
+df_scaled['speechiness'] = df_scaled['speechiness'] * 1.5
+
 st.set_page_config(page_title="Vibe Matcher", page_icon="🎵", layout="wide")
-st.title("Spotify Vibe Matcher")
-st.write("Select a song, and I'll find 5 others with the same mathematical 'vibe' from our database.")
 
-song_search = st.text_input("Search for a song:", "")
+st.markdown("""
+<style>
+.stButton>button { width: 100%; background-color: #1DB954; color: white; }
+</style>
+""", unsafe_allow_html=True)
 
-if song_search:
-    filtered_df = df[df['track_name'].str.contains(song_search, case=False, na=False)]
-    options = filtered_df['track_name'].values
+st.title("🎵 Spotify Vibe Matcher")
+st.write("Find songs with the same mathematical 'vibe'.")
+
+# Search Bar
+col1, col2 = st.columns([3, 1])
+with col1:
+    search_query = st.text_input("🔍 Search for a song you love:", placeholder="e.g. Blinding Lights")
+
+# Filter options based on search
+options = []
+if search_query:
+    # Case-insensitive search
+    mask = df['track_name'].str.contains(search_query, case=False, na=False)
+    filtered_df = df[mask].sort_values(by='popularity', ascending=False).head(10) # Show top 10 matches
+    filtered_df['display_name'] = filtered_df['track_name'] + " - " + filtered_df['artists']
+    filtered_df.replace(";", ", ", regex=True, inplace=True)
+    
+    options = filtered_df['display_name'].values
+
+# Song Selector
+if len(options) > 0:
+    selected_song = st.selectbox("Select the specific version:", options)
 else:
-    options = []
-
-selected_song = st.selectbox("Select match:", options)
+    selected_song = None
+    if search_query:
+        st.warning("No popular songs found with that name. Try another!")
 
 if st.button("Find Matches") and selected_song:
-    # Get the vector of the selected song
-    song_index = df[df['track_name'] == selected_song].index[0]
-    song_vector = df_scaled.loc[song_index, feature_cols].values.reshape(1, -1)
+    selected_track, selected_artist = selected_song.rsplit(' - ', 1)
+    selected_artist = selected_artist.replace(", ", ";") # Convert back to original format
     
+    # Find the specific row that matches BOTH name and artist
+    song_row = df[(df['track_name'] == selected_track) & (df['artists'] == selected_artist)]
+    
+    if len(song_row) == 0:
+        st.error("Could not find that specific song in the database. Please try again.")
+        st.stop()
+        
+    song_index = song_row.index[0]
+    song_vector = df_scaled.loc[song_index, feature_cols].values.reshape(1, -1)
+    selected_genre = song_row['track_genre'].values[0] if 'track_genre' in df.columns else None
     # Calculate Similarity against the entire dataset
     similarity_scores = cosine_similarity(song_vector, df_scaled[feature_cols])
     
-    # Sort and get top 5
-    similar_indices = similarity_scores[0].argsort()[-6:][::-1]
+    final_scores = similarity_scores[0].copy()
+    
+    if selected_genre:
+        genre_matches = df['track_genre'] == selected_genre
+        # Apply penalty to non-matches
+        # We start with the original score, and subtract 0.15 where genre is DIFFERENT
+        for i in range(len(final_scores)):
+            if df.at[i, 'track_genre'] != selected_genre:
+                final_scores[i] -= 0.15 
+    
+    # Sort by NEW scores
+    similar_indices = final_scores.argsort()[-11:][::-1]
     
     # Display Results
-    st.subheader(f"If you like '{selected_song}', you might like:")
+    st.subheader(f"If you like '{selected_track}', you might like:")
     cols = st.columns(5)
     
     count = 0
@@ -63,15 +111,23 @@ if st.button("Find Matches") and selected_song:
         if i == song_index: continue # Skip the song itself
         
         match = df.iloc[i]
-        score = similarity_scores[0][i]
+        score = final_scores[i]
         
-        with cols[count]:
-            # The Kaggle dataset usually has track_genre, but no image URL.
-            # We'll show the Genre instead of the image.
-            st.metric(label="Match Score", value=f"{int(score*100)}%")
-            st.write(f"**{match['track_name']}**")
-            st.caption(f"{match['artists']}".replace(";", ", "))
-            st.info(match['track_genre'] if 'track_genre' in match else "Genre Unknown")
+        with cols[count % 5]:
+            # Generate Spotify Link
+            spotify_url = f"https://open.spotify.com/track/{match['track_id']}" if 'track_id' in match else "#"
+            
+            with st.container(border=True):
+                st.write(f"**{match['track_name']}**")
+                st.caption(f"{match['artists']}".replace(";", ", "))
+                
+                genre_display = match['track_genre'] if 'track_genre' in match else "Unknown"
+                st.info(f"Genre: {genre_display}")
+                
+                st.progress(int(score*100), text=f"Match: {int(score*100)}%")
+                
+                # The "Listen" Link
+                st.link_button("Listen on Spotify", spotify_url)
             
         count += 1
         if count >= 5: break
