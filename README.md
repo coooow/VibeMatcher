@@ -55,12 +55,15 @@ The core recommendation engine operates in three stages:
 
 1.  **Normalization:**
     Raw audio features are scaled to a `0-1` range using MinMax Scaling to prevent high-variance features (like BPM) from dominating the vector space.
-    $$ X_{scaled} = \frac{X - X_{min}}{X_{max} - X_{min}} $$
+    
+    > $$X_{scaled} = \frac{X - X_{min}}{X_{max} - X_{min}}$$
 
-2.  **Cosine Similarity:**
+3.  **Cosine Similarity:**
     We calculate the cosine of the angle between the user's song vector ($A$) and every other song vector ($B$) in the database.
-    $$ \text{similarity} = \cos(\theta) = \frac{A \cdot B}{\|A\| \|B\|} $$
 
-3.  **Hybrid Penalty:**
+    > $$\text{similarity} = \cos(\theta) = \frac{A \cdot B}{\|A\| \|B\|}$$
+
+5.  **Hybrid Penalty:**
     The final score is adjusted based on metadata rules to ensure cultural relevance.
-    $$ \text{Final Score} = \text{Similarity} - ( \text{Penalty} \times \mathbb{I}_{genre\_mismatch} ) $$
+
+    > $$\text{Final Score} = \text{Similarity} - ( \text{Penalty} \times \mathbb{I}_{genre\_mismatch} )$$
