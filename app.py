@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import MinMaxScaler
+import urllib.parse
 
 @st.cache_data
 def load_data():
@@ -114,7 +115,9 @@ if st.button("Find Matches") and selected_song:
         
         with cols[count % 5]:
             # Generate Spotify Link
-            spotify_url = f"https://open.spotify.com/track/{match['track_id']}" if 'track_id' in match else "#"
+            query = f"{match['track_name']} {match['artists']}"
+            safe_query = urllib.parse.quote(query)
+            spotify_url = f"https://open.spotify.com/search/{safe_query}"
             
             with st.container(border=True):
                 st.write(f"**{match['track_name']}**")
