@@ -6,18 +6,27 @@ from sklearn.preprocessing import MinMaxScaler
 @st.cache_data
 def load_data():
     df = pd.read_csv('songs.csv')
-    
+    column_mapping = {
+            'Title': 'track_name',
+            'Artist': 'artists',
+            'Top Genre': 'track_genre',
+            'Beats Per Minute (BPM)': 'tempo',
+            'Energy': 'energy',
+            'Danceability': 'danceability',
+            'Valence': 'valence',
+            'Acousticness': 'acousticness',
+            'Speechiness': 'speechiness',
+            'Popularity': 'popularity'
+    }
+        
+    df = df.rename(columns=column_mapping)
     df = df.drop_duplicates(subset=['track_name', 'artists'])
-    
-    if 'popularity' in df.columns:
-        df = df[df['popularity'] > 50]
-    
-    df = df.reset_index(drop=True)
-    
-    return df
+        
+    return df.reset_index(drop=True)
 
 try:
     df = load_data()
+    df = df.fillna(0)
 except FileNotFoundError:
     st.error("'songs.csv' not found")
     st.stop()
@@ -51,7 +60,7 @@ st.write("Find songs with the same mathematical 'vibe'.")
 # Search Bar
 col1, col2 = st.columns([3, 1])
 with col1:
-    search_query = st.text_input("🔍 Search for a song you love:", placeholder="e.g. Blinding Lights")
+    search_query = st.text_input("🔍 Search for a song you love:", placeholder="e.g. Yellow")
 
 # Filter options based on search
 options = []
@@ -60,7 +69,6 @@ if search_query:
     mask = df['track_name'].str.contains(search_query, case=False, na=False)
     filtered_df = df[mask].sort_values(by='popularity', ascending=False).head(10) # Show top 10 matches
     filtered_df['display_name'] = filtered_df['track_name'] + " - " + filtered_df['artists']
-    filtered_df.replace(";", ", ", regex=True, inplace=True)
     
     options = filtered_df['display_name'].values
 
@@ -74,7 +82,6 @@ else:
 
 if st.button("Find Matches") and selected_song:
     selected_track, selected_artist = selected_song.rsplit(' - ', 1)
-    selected_artist = selected_artist.replace(", ", ";") # Convert back to original format
     
     # Find the specific row that matches BOTH name and artist
     song_row = df[(df['track_name'] == selected_track) & (df['artists'] == selected_artist)]
@@ -90,14 +97,6 @@ if st.button("Find Matches") and selected_song:
     similarity_scores = cosine_similarity(song_vector, df_scaled[feature_cols])
     
     final_scores = similarity_scores[0].copy()
-    
-    if selected_genre:
-        genre_matches = df['track_genre'] == selected_genre
-        # Apply penalty to non-matches
-        # We start with the original score, and subtract 0.15 where genre is DIFFERENT
-        for i in range(len(final_scores)):
-            if df.at[i, 'track_genre'] != selected_genre:
-                final_scores[i] -= 0.15 
     
     # Sort by NEW scores
     similar_indices = final_scores.argsort()[-11:][::-1]
