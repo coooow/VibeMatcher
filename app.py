@@ -51,7 +51,48 @@ st.set_page_config(page_title="Vibe Matcher", page_icon="🎵", layout="wide")
 
 st.markdown("""
 <style>
-.stButton>button { width: 100%; background-color: #1DB954; color: white; }
+/* Buttons */
+.stButton>button, div.stLinkButton > a { 
+    width: 100%; 
+    background-color: #1DB954; 
+    color: white; 
+    border-radius: 5px;
+    font-weight: bold;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+.stButton>button:hover, div.stLinkButton > a:hover { 
+    background-color: #1ED760; 
+    transform: scale(1.02);
+    box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+    color: white;
+    text-decoration: none;
+}
+stButton > button:active, div.stLinkButton > a:active {
+    background-color: #14833B;
+    transform: scale(0.98); 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+/* Cards */
+div[data-testid="stColumn"] > div[data-testid="stVerticalBlock"] > div > div[data-testid="stVerticalBlock"] {
+    background-color: #151520; 
+    border: 1px solid #2E2E3E;
+    border-radius: 15px;
+    padding: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%; 
+}
+div[data-testid="stColumn"] > div[data-testid="stVerticalBlock"] > div > div[data-testid="stVerticalBlock"]:hover {
+    transform: translateY(-5px);
+    border-color: #1DB954; 
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+div[data-testid="stMarkdownContainer"] p strong {
+    font-size: 24px;  
+    font-weight: 700; 
+    color: #FFFFFF;             
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -121,10 +162,10 @@ if st.button("Find Matches") and selected_song:
             
             with st.container(border=True):
                 st.write(f"**{match['track_name']}**")
-                st.caption(f"{match['artists']}".replace(";", ", "))
+                st.markdown(f"<h6 style='color: #b3b3b3; margin-top: -15px;'>{match['artists']}</h6>", unsafe_allow_html=True)
                 
                 genre_display = match['track_genre'] if 'track_genre' in match else "Unknown"
-                st.info(f"Genre: {genre_display}")
+                st.success(f"Genre: {genre_display}")
                 
                 st.progress(int(score*100), text=f"Match: {int(score*100)}%")
                 
