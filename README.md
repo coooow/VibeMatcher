@@ -58,7 +58,7 @@ The core recommendation engine operates in two stages:
     Raw audio features are scaled to a `0-1` range using MinMax Scaling. We then apply scalar multiplication to prioritize specific dimensions.
     
     > $$X_{scaled} = \frac{X - X_{min}}{X_{max} - X_{min}} \times W_{feature}$$
-    > *(Where $W_{speechiness} = 1.5$ and $W_{tempo} = 1.2$)*
+    *(Where $W_{speechiness} = 1.5$ and $W_{tempo} = 1.2$)*
 
 2.  **Cosine Similarity:**
     We calculate the cosine of the angle between the user's song vector ($A$) and every other song vector ($B$) in the database.
