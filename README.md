@@ -23,34 +23,35 @@ This project solves that by implementing a **Weighted Content-Based System**:
 * **Fuzzy Search:** Intelligent string matching allows users to find specific tracks even if they type only part of the name.
 * **Deep Linking:** Generates direct Spotify links for immediate listening.
 
-## 💻 Installation & Setup
+## How to Run / View
 
-**Note:** The dataset is not included in the repo. You must download it manually.
+**Option 1: Live Demo (Recommended)**
+
+This project is hosted on Streamlit. You can access the live version here:
+
+**➡️ [Click to view Live Demo](https://vibematcher.streamlit.app/)**
+
+**Option 2: Run Locally**
+
+If you want to explore the code on your own machine:
 
 1.  **Clone the Repository**
     ```bash
-    git clone [https://github.com/yourusername/spotify-vibe-matcher.git](https://github.com/yourusername/spotify-vibe-matcher.git)
-    cd spotify-vibe-matcher
+    git clone [https://github.com/coooow/VibeMatcher.git](https://github.com/coooow/VibeMatcher.git)
+    cd vibematcher
     ```
 
-2.  **Download the Data (Crucial)**
-    * Go to the [Spotify Top 2000s Mega Dataset on Kaggle](https://www.kaggle.com/datasets/iamsumat/spotify-top-2000s-mega-dataset).
-    * Download the zip file.
-    * Extract the file inside (usually named `Spotify-2000.csv`).
-    * **Rename it to:** `songs.csv`
-    * Place `songs.csv` in the root folder of this project.
-
-3.  **Install Dependencies**
+2.  **Install Dependencies**
     ```bash
     pip install streamlit pandas scikit-learn
     ```
 
-4.  **Run the App**
+3.  **Run the App**
     ```bash
     streamlit run app.py
     ```
 
-## 🧠 The Math Behind It
+## The Math Behind It
 The core recommendation engine operates in two stages:
 
 1.  **Normalization & Weighting:**
