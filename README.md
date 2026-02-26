@@ -37,13 +37,13 @@ If you want to explore the code on your own machine:
 
 1.  **Clone the Repository**
     ```bash
-    git clone [https://github.com/coooow/VibeMatcher.git](https://github.com/coooow/VibeMatcher.git)
-    cd vibematcher
+    git clone https://github.com/coooow/VibeMatcher.git
+    cd VibeMatcher
     ```
 
 2.  **Install Dependencies**
     ```bash
-    pip install streamlit pandas scikit-learn
+    pip install -r requirements.txt
     ```
 
 3.  **Run the App**
